@@ -1,14 +1,10 @@
 /**
  * api.js — Couche d'accès aux données
  * =====================================
- * Chaque requête transmet le token Google ID de l'utilisateur connecté.
- * L'Apps Script valide ce token via l'API Google et vérifie la liste blanche.
- * Aucune clé secrète dans le code — la sécurité repose sur Google.
+ * Toutes les requêtes (lectures ET écritures) passent par POST.
+ * Cela évite les problèmes CORS liés aux redirections Google sur les GET
+ * et contourne la limite de taille des paramètres URL (token JWT trop long).
  */
-
-// =============================================================================
-// Cache local en mémoire
-// =============================================================================
 
 const _cache = {
   bacs:    null,
@@ -26,21 +22,20 @@ function invalidateCache() {
 // =============================================================================
 
 async function apiFetchBacs() {
-  if (!_cache.bacs) _cache.bacs = await _get("getBacs");
+  if (!_cache.bacs) _cache.bacs = await _post("getBacs", {});
   return _cache.bacs;
 }
 
 async function apiFetchReleves() {
-  if (!_cache.releves) _cache.releves = await _get("getReleves");
+  if (!_cache.releves) _cache.releves = await _post("getReleves", {});
   return _cache.releves;
 }
 
 async function apiFetchConfig() {
-  if (!_cache.config) _cache.config = await _get("getConfig");
+  if (!_cache.config) _cache.config = await _post("getConfig", {});
   return _cache.config;
 }
 
-/** Retourne une Map<bacId, dernierRelevé> triée par date décroissante */
 async function apiGetDerniersReleves() {
   const releves = await apiFetchReleves();
   const map     = new Map();
@@ -61,25 +56,10 @@ async function apiDeleteBac(id)   { const r = await _post("deleteBac", { id }); 
 async function apiAddReleve(data) { const r = await _post("addReleve", data);   invalidateCache(); return r; }
 
 // =============================================================================
-// Requêtes HTTP internes — token Google joint à chaque appel
+// Requête HTTP interne — tout en POST pour éviter les problèmes CORS
 // =============================================================================
 
-async function _get(action) {
-  // Le token Google ID est passé en paramètre URL.
-  // Apps Script le valide via l'API Google avant tout traitement.
-  const token = Auth.getToken();
-  const url   = `${APP_CONFIG.APPS_SCRIPT_URL}?action=${action}&token=${encodeURIComponent(token)}&t=${Date.now()}`;
-
-  const response = await fetch(url, { redirect: "follow" });
-  if (!response.ok) throw new Error(`Erreur réseau (${response.status})`);
-
-  const json = await response.json();
-  if (!json.success) throw new Error(json.error || "Erreur serveur");
-  return json.data;
-}
-
 async function _post(action, payload) {
-  // Le token Google ID est inclus dans le body JSON.
   const token    = Auth.getToken();
   const response = await fetch(APP_CONFIG.APPS_SCRIPT_URL, {
     method:   "POST",
