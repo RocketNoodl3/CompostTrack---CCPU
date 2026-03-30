@@ -1,64 +1,92 @@
 /**
  * auth.js — Authentification Google Identity Services (GSI)
  * ===========================================================
- * Gère la connexion Google et expose le token ID utilisé par api.js
- * pour sécuriser chaque appel vers l'Apps Script.
- *
- * Fonctionnement :
- *   1. L'agent clique "Se connecter avec Google"
- *   2. Google vérifie ses identifiants et retourne un token JWT signé
- *   3. Ce token est joint à chaque requête Apps Script
- *   4. Apps Script valide le token via l'API Google et vérifie l'email
+ * Le token Google ID est sauvegardé dans sessionStorage pour survivre
+ * aux navigations entre pages (index.html ↔ stats.html).
+ * Il est effacé automatiquement à la fermeture de l'onglet.
  */
 
 const Auth = (() => {
 
-  let _token    = null;   // Token Google ID courant (JWT)
-  let _userInfo = null;   // { name, email, picture }
+  const SESSION_KEY = "composttrack_token";     // Clé sessionStorage
+  const SESSION_USER = "composttrack_user";     // Clé sessionStorage infos user
 
-  // Callbacks appelés une fois la connexion établie
+  let _token    = null;
+  let _userInfo = null;
+
   const _onLoginCallbacks = [];
 
   // ===========================================================================
   // Initialisation
   // ===========================================================================
 
-  /**
-   * Initialise Google Identity Services.
-   * Appeler au chargement de chaque page.
-   */
   function init() {
+    // ── Tentative de restauration depuis sessionStorage ──────────────────────
+    // Si l'utilisateur navigue entre pages, le token est déjà là
+    const savedToken = sessionStorage.getItem(SESSION_KEY);
+    const savedUser  = sessionStorage.getItem(SESSION_USER);
+
+    if (savedToken && savedUser) {
+      try {
+        // Vérifie que le token n'est pas expiré avant de le réutiliser
+        const payload = JSON.parse(atob(savedToken.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
+        const expired = payload.exp && Date.now() / 1000 > parseInt(payload.exp);
+
+        if (!expired) {
+          // Token encore valide — restauration silencieuse, pas de popup Google
+          _token    = savedToken;
+          _userInfo = JSON.parse(savedUser);
+          _updateUI(true);
+          // Déclenche les callbacks après que le DOM soit prêt
+          setTimeout(() => _onLoginCallbacks.forEach(cb => cb(_userInfo)), 0);
+          // Initialise GSI en arrière-plan pour le renouvellement automatique
+          _initGSI();
+          return;
+        }
+      } catch {
+        // Token corrompu — on le supprime et on redemande une connexion
+        sessionStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(SESSION_USER);
+      }
+    }
+
+    // ── Pas de token valide en session — initialisation GSI normale ──────────
+    _initGSI();
+    google.accounts.id.prompt();   // Affiche le One Tap si session Google active
+  }
+
+  /** Initialise Google Identity Services */
+  function _initGSI() {
     google.accounts.id.initialize({
       client_id:   APP_CONFIG.GOOGLE_CLIENT_ID,
       callback:    _handleCredentialResponse,
-      auto_select: true,    // Reconnexion automatique si session active
+      auto_select: true,
     });
 
-    // Rendu du bouton de connexion dans #google-signin-btn si présent
-    const btnEl = document.getElementById("google-signin-btn");
-    if (btnEl) {
-      google.accounts.id.renderButton(btnEl, {
-        theme:  "outline",
-        size:   "large",
-        text:   "signin_with",
-        locale: "fr",
-        shape:  "rectangular",
+    // Bouton dans le header
+    const btnHeader = document.getElementById("google-signin-btn");
+    if (btnHeader) {
+      google.accounts.id.renderButton(btnHeader, {
+        theme: "outline", size: "large", text: "signin_with", locale: "fr",
       });
     }
 
-    // Affiche le One Tap si l'utilisateur n'est pas encore connecté
-    google.accounts.id.prompt();
+    // Bouton centré sur l'écran d'accueil
+    const btnCenter = document.getElementById("google-signin-btn-center");
+    if (btnCenter) {
+      google.accounts.id.renderButton(btnCenter, {
+        theme: "filled_green", size: "large", text: "signin_with", locale: "fr",
+      });
+    }
   }
 
   /**
-   * Appelé par Google après une connexion réussie.
-   * Le credential est un JWT Google ID Token signé.
+   * Appelé par Google après connexion réussie.
+   * Sauvegarde le token dans sessionStorage pour les navigations suivantes.
    */
   function _handleCredentialResponse(response) {
     _token = response.credential;
 
-    // Décode le payload JWT (base64url) pour récupérer nom/email/photo
-    // Note : la signature est vérifiée côté Apps Script, pas ici
     try {
       const payload = JSON.parse(atob(_token.split(".")[1].replace(/-/g,"+").replace(/_/g,"/")));
       _userInfo = {
@@ -70,9 +98,12 @@ const Auth = (() => {
       _userInfo = { name: "Agent", email: "", picture: "" };
     }
 
-    _updateUI(true);
+    // ── Sauvegarde dans sessionStorage ───────────────────────────────────────
+    // Persiste entre les pages, effacé à la fermeture de l'onglet
+    sessionStorage.setItem(SESSION_KEY,  _token);
+    sessionStorage.setItem(SESSION_USER, JSON.stringify(_userInfo));
 
-    // Déclenche tous les callbacks enregistrés (chargement de l'app)
+    _updateUI(true);
     _onLoginCallbacks.forEach(cb => cb(_userInfo));
   }
 
@@ -80,34 +111,24 @@ const Auth = (() => {
   // API publique
   // ===========================================================================
 
-  /**
-   * Retourne le token JWT courant.
-   * Utilisé par api.js pour sécuriser chaque requête.
-   * @throws {Error} si non connecté
-   */
   function getToken() {
     if (!_token) throw new Error("Non connecté — veuillez vous identifier.");
     return _token;
   }
 
-  /** Retourne true si l'utilisateur est connecté */
-  function isLoggedIn() { return !!_token; }
+  function isLoggedIn()  { return !!_token;    }
+  function getUserInfo() { return _userInfo;   }
 
-  /** Retourne { name, email, picture } de l'utilisateur connecté */
-  function getUserInfo() { return _userInfo; }
-
-  /**
-   * Enregistre un callback à appeler après connexion réussie.
-   * Si déjà connecté, l'appelle immédiatement.
-   */
   function onLogin(callback) {
     _onLoginCallbacks.push(callback);
     if (_userInfo) callback(_userInfo);
   }
 
-  /** Déconnexion et rechargement de la page */
+  /** Déconnexion — vide la session et recharge la page */
   function logout() {
     google.accounts.id.disableAutoSelect();
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_USER);
     _token    = null;
     _userInfo = null;
     _updateUI(false);
@@ -115,24 +136,28 @@ const Auth = (() => {
   }
 
   // ===========================================================================
-  // Mise à jour de l'interface
+  // UI
   // ===========================================================================
 
   function _updateUI(loggedIn) {
-    const loginSection  = document.getElementById("auth-login");
-    const userSection   = document.getElementById("auth-user");
-    const appContent    = document.getElementById("app-content");
+    const loginSection = document.getElementById("auth-login");
+    const userSection  = document.getElementById("auth-user");
+    const appContent   = document.getElementById("app-content");
+    const mainNav      = document.getElementById("main-nav");
+    const authScreen   = document.getElementById("auth-screen");
 
     if (loginSection) loginSection.style.display = loggedIn ? "none"  : "flex";
     if (userSection)  userSection.style.display  = loggedIn ? "flex"  : "none";
     if (appContent)   appContent.style.display   = loggedIn ? "block" : "none";
+    if (mainNav)      mainNav.style.display      = loggedIn ? "flex"  : "none";
+    if (authScreen)   authScreen.style.display   = loggedIn ? "none"  : "flex";
 
     if (loggedIn && _userInfo) {
       const nameEl   = document.getElementById("user-name");
       const avatarEl = document.getElementById("user-avatar");
       if (nameEl)   nameEl.textContent = _userInfo.name;
       if (avatarEl && _userInfo.picture) {
-        avatarEl.src = _userInfo.picture;
+        avatarEl.src           = _userInfo.picture;
         avatarEl.style.display = "block";
       }
     }
