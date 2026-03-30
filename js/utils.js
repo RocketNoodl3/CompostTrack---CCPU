@@ -1,4 +1,13 @@
 /**
+ * Seuils d'alerte actifs — mis à jour au chargement depuis le Sheet.
+ * Partagé entre map.js et table.js.
+ */
+const SEUILS_ACTIFS = {
+  apport: APP_CONFIG.SEUIL_APPORT_ALERTE,   // Valeur par défaut
+  broyat: APP_CONFIG.SEUIL_BROYAT_ALERTE,   // Valeur par défaut
+};
+
+/**
  * utils.js — Fonctions utilitaires partagées
  * ============================================
  * Fonctions pures sans effet de bord, utilisées par tous les autres modules.
