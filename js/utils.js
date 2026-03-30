@@ -1,11 +1,63 @@
-/**
- * Seuils d'alerte actifs — mis à jour au chargement depuis le Sheet.
- * Partagé entre map.js et table.js.
- */
+// =============================================================================
+// Seuils d'alerte — source unique de vérité pour toute l'application
+// Mis à jour une seule fois au chargement via initSeuils()
+// =============================================================================
+
 const SEUILS_ACTIFS = {
-  apport: APP_CONFIG.SEUIL_APPORT_ALERTE,   // Valeur par défaut
-  broyat: APP_CONFIG.SEUIL_BROYAT_ALERTE,   // Valeur par défaut
+  apport:          APP_CONFIG.SEUIL_APPORT_ALERTE,
+  broyat:          APP_CONFIG.SEUIL_BROYAT_ALERTE,
+  joursSansReleve: 30,   // Alerte si aucun relevé depuis X jours
 };
+
+/**
+ * Charge les seuils depuis le Sheet et met à jour SEUILS_ACTIFS.
+ * À appeler une seule fois au démarrage, avant map.js et table.js.
+ */
+async function initSeuils() {
+  try {
+    const config = await apiFetchConfig();
+    if (config.seuils?.length) {
+      const s = config.seuils[0];
+      const a = parseFloat(s.seuilApport);
+      const b = parseFloat(s.seuilBroyat);
+      const j = parseFloat(s.seuilJoursSansReleve);
+      if (!isNaN(a)) SEUILS_ACTIFS.apport          = a;
+      if (!isNaN(b)) SEUILS_ACTIFS.broyat           = b;
+      if (!isNaN(j)) SEUILS_ACTIFS.joursSansReleve  = j;
+    }
+  } catch (err) {
+    console.warn("Seuils non chargés depuis le Sheet, valeurs par défaut utilisées :", err.message);
+  }
+  console.log("Seuils actifs :", SEUILS_ACTIFS);
+}
+
+/**
+ * Calcule le type d'alerte d'un relevé.
+ * Règle :
+ *   apport >= SEUILS_ACTIFS.apport  → "apport"  (bac trop plein)
+ *   broyat <= SEUILS_ACTIFS.broyat  → "broyat"  (manque de broyat)
+ *   aucune condition                → "normal"
+ *
+ * @param  {Object} releve - Objet relevé (peut être null)
+ * @returns {"normal"|"apport"|"broyat"}
+ */
+function calculerAlerte(releve) {
+  // Pas de relevé du tout → inactif
+  if (!releve) return "inactif";
+
+  // Dernier relevé trop ancien → inactif
+  if (SEUILS_ACTIFS.joursSansReleve > 0) {
+    const dateReleve = new Date(releve.date);
+    const joursEcoules = (Date.now() - dateReleve.getTime()) / (1000 * 60 * 60 * 24);
+    if (!isNaN(joursEcoules) && joursEcoules > SEUILS_ACTIFS.joursSansReleve) return "inactif";
+  }
+
+  const apport = parseFloat(releve.hauteurApport);
+  const broyat = parseFloat(releve.hauteurBroyat);
+  if (!isNaN(apport) && apport >= SEUILS_ACTIFS.apport) return "apport";
+  if (!isNaN(broyat) && broyat <= SEUILS_ACTIFS.broyat) return "broyat";
+  return "normal";
+}
 
 /**
  * utils.js — Fonctions utilitaires partagées
