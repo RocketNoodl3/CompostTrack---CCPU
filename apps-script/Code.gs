@@ -1,31 +1,25 @@
 /**
  * COMPOSTTRACK — Google Apps Script Web App
  * ==========================================
- * Sécurité : token Google ID vérifié + liste blanche d'emails.
+ * Utilise JSONP pour contourner les limitations CORS d'Apps Script.
+ * Le client envoie un paramètre "callback" dans l'URL GET.
+ * Apps Script enveloppe la réponse JSON dans ce callback.
  *
  * DÉPLOIEMENT :
  *   1. Extensions > Apps Script > coller ce code
- *   2. Remplissez EMAILS_AUTORISES avec les emails de vos agents
+ *   2. Remplir EMAILS_AUTORISES
  *   3. Déployer > Nouveau déploiement
- *      - Type                 : Application Web
+ *      - Type : Application Web
  *      - Exécuter en tant que : Moi
- *      - Qui a accès          : Tout le monde connecté à Google
- *   4. Copier l'URL dans js/config.js → APPS_SCRIPT_URL
- *
- * AJOUTER / RÉVOQUER UN AGENT :
- *   Modifiez EMAILS_AUTORISES puis : Déployer > Gérer les déploiements
- *   > sélectionner > Nouvelle version.
+ *      - Qui a accès : Tout le monde connecté à Google
+ *   4. Copier l'URL dans js/config.js
  */
 
-// ── Liste blanche des emails autorisés ────────────────────────────────────────
-// Ajoutez ou retirez des emails pour gérer les accès.
 const EMAILS_AUTORISES = [
-  "agent1@gmail.com",
-  "agent2@gmail.com",
-  // Ajoutez autant d'emails que nécessaire
+  "monkeywooood@gmail.com",
+  // Ajoutez vos agents ici
 ];
 
-// ── Noms des onglets ───────────────────────────────────────────────────────────
 const SHEET_BACS         = "bacs";
 const SHEET_RELEVES      = "relevés";
 const SHEET_SEUILS       = "config_seuils";
@@ -35,111 +29,90 @@ const SHEET_PROBLEMES    = "config_problemes";
 const SHEET_TYPES_RELEVE = "config_types_releve";
 
 // =============================================================================
-// Points d'entrée HTTP
-// =============================================================================
-
-function doGet(e) {
-  try {
-    // Vérification du token et de l'email avant tout traitement
-    const email = _verifierToken(e.parameter.token);
-
-    const action = e.parameter.action;
-    let data;
-    switch (action) {
-      case "getBacs":    data = getBacs();    break;
-      case "getReleves": data = getReleves(); break;
-      case "getConfig":  data = getConfig();  break;
-      default: return _response({ error: "Action inconnue : " + action });
-    }
-    return _response({ success: true, data, email });
-
-  } catch (err) {
-    return _response({ error: err.message });
-  }
-}
-
-function doPost(e) {
-  try {
-    const body = JSON.parse(e.postData.contents);
-
-    // Vérification du token et de l'email avant tout traitement
-    const email = _verifierToken(body.token);
-
-    const action  = body.action;
-    const payload = body.payload;
-    let data;
-    switch (action) {
-      case "addBac":    data = addBac(payload);       break;
-      case "updateBac": data = updateBac(payload);    break;
-      case "deleteBac": data = deleteBac(payload.id); break;
-      case "addReleve": data = addReleve(payload);    break;
-      default: return _response({ error: "Action inconnue : " + action });
-    }
-    return _response({ success: true, data });
-
-  } catch (err) {
-    return _response({ error: err.message });
-  }
-}
-
-// =============================================================================
-// Vérification de sécurité
+// Points d'entrée
 // =============================================================================
 
 /**
- * Vérifie le token Google ID et contrôle que l'email est dans la liste blanche.
- *
- * Google ID tokens sont des JWT signés par Google.
- * On utilise l'API OAuth2 de Google Apps Script pour les valider —
- * impossible à falsifier sans accès aux serveurs Google.
- *
- * @param  {string} token - Token Google ID envoyé par le navigateur
- * @returns {string}      - Email de l'utilisateur si autorisé
- * @throws  {Error}       - Si token invalide ou email non autorisé
+ * GET : lectures + écritures via paramètre "data" encodé en base64
+ * Utilise JSONP pour contourner CORS : ?callback=fn&action=...&token=...
  */
+function doGet(e) {
+  const callback = e.parameter.callback;
+  try {
+    const email = _verifierToken(e.parameter.token);
+    let data;
+    switch (e.parameter.action) {
+      case "getBacs":    data = getBacs();            break;
+      case "getReleves": data = getReleves();         break;
+      case "getConfig":  data = getConfig();          break;
+      case "addBac":     data = addBac(JSON.parse(e.parameter.payload));       break;
+      case "updateBac":  data = updateBac(JSON.parse(e.parameter.payload));    break;
+      case "deleteBac":  data = deleteBac(JSON.parse(e.parameter.payload).id); break;
+      case "addReleve":  data = addReleve(JSON.parse(e.parameter.payload));    break;
+      default: return _jsonp(callback, { error: "Action inconnue" });
+    }
+    return _jsonp(callback, { success: true, data });
+  } catch (err) {
+    return _jsonp(callback, { error: err.message });
+  }
+}
+
+/**
+ * POST : gardé pour compatibilité mais JSONP via GET est préféré
+ */
+function doPost(e) {
+  try {
+    const body  = JSON.parse(e.postData.contents);
+    const email = _verifierToken(body.token);
+    let data;
+    switch (body.action) {
+      case "getBacs":    data = getBacs();                break;
+      case "getReleves": data = getReleves();             break;
+      case "getConfig":  data = getConfig();              break;
+      case "addBac":     data = addBac(body.payload);     break;
+      case "updateBac":  data = updateBac(body.payload);  break;
+      case "deleteBac":  data = deleteBac(body.payload.id); break;
+      case "addReleve":  data = addReleve(body.payload);  break;
+      default: return _response({ error: "Action inconnue" });
+    }
+    return _response({ success: true, data });
+  } catch (err) {
+    return _response({ error: err.message });
+  }
+}
+
+// =============================================================================
+// Vérification token Google
+// =============================================================================
+
 function _verifierToken(token) {
   if (!token) throw new Error("Accès refusé — token manquant.");
 
-  // Validation du token via l'API Google (vérifie signature + expiration)
   let payload;
   try {
-    // Décode le JWT Google ID Token (header.payload.signature)
-    // et vérifie sa validité via tokeninfo endpoint de Google
     const response = UrlFetchApp.fetch(
       "https://oauth2.googleapis.com/tokeninfo?id_token=" + token,
       { muteHttpExceptions: true }
     );
-
-    if (response.getResponseCode() !== 200) {
-      throw new Error("Token invalide.");
-    }
-
+    if (response.getResponseCode() !== 200) throw new Error();
     payload = JSON.parse(response.getContentText());
   } catch (err) {
-    throw new Error("Accès refusé — token non vérifiable.");
+    throw new Error("Accès refusé — token invalide.");
   }
 
-  // Vérification que le token n'est pas expiré
   if (payload.exp && Date.now() / 1000 > parseInt(payload.exp)) {
     throw new Error("Accès refusé — session expirée.");
   }
 
-  const email = (payload.email || "").toLowerCase();
-
-  // Vérification dans la liste blanche (insensible à la casse)
-  const autorise = EMAILS_AUTORISES
-    .map(e => e.toLowerCase())
-    .includes(email);
-
-  if (!autorise) {
-    throw new Error(`Accès refusé — compte non autorisé (${email}).`);
-  }
+  const email    = (payload.email || "").toLowerCase();
+  const autorise = EMAILS_AUTORISES.map(e => e.toLowerCase()).includes(email);
+  if (!autorise) throw new Error(`Accès refusé — compte non autorisé (${email}).`);
 
   return email;
 }
 
 // =============================================================================
-// Lectures
+// Lectures / Écritures
 // =============================================================================
 
 function getBacs()    { return _sheetToObjects(SHEET_BACS);    }
@@ -153,10 +126,6 @@ function getConfig()  {
     typesReleve: _sheetToObjects(SHEET_TYPES_RELEVE),
   };
 }
-
-// =============================================================================
-// Écritures
-// =============================================================================
 
 function addBac(data) {
   const sheet = _getSheet(SHEET_BACS);
@@ -202,7 +171,7 @@ function addReleve(data) {
 }
 
 // =============================================================================
-// Utilitaires internes
+// Utilitaires
 // =============================================================================
 
 function _getSheet(name) {
@@ -235,8 +204,47 @@ function _generateId() {
   return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 }
 
-function _response(data) {
+/** Réponse JSON standard (pour doPost) */
+/**
+ * Gère les requêtes OPTIONS (preflight CORS envoyées par le navigateur).
+ * Sans cette fonction, les POST depuis GitHub Pages sont bloqués.
+ */
+function doOptions(e) {
+  return ContentService
+    .createTextOutput("")
+    .setMimeType(ContentService.MimeType.TEXT);
+}
+
+/**
+ * Retourne une réponse JSON ou JSONP selon la présence du paramètre callback.
+ * JSONP : enveloppe la réponse dans callback({...}) pour contourner le CORS.
+ */
+function _responseJsonp(data, callback) {
+  if (callback) {
+    // Mode JSONP — le navigateur exécute callback(data) via une balise <script>
+    return ContentService
+      .createTextOutput(callback + "(" + JSON.stringify(data) + ")")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return ContentService
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
+}
+
+function _response(data) {
+  return _responseJsonp(data, null);
+}
+
+/**
+ * Réponse JSONP — enveloppe le JSON dans un appel de fonction JS.
+ * Contourne les limitations CORS d'Apps Script sur les requêtes cross-origin.
+ * Ex: callback=fn → fn({"success":true,"data":[...]})
+ */
+function _jsonp(callback, data) {
+  const js = callback
+    ? `${callback}(${JSON.stringify(data)})`
+    : JSON.stringify(data);
+  return ContentService
+    .createTextOutput(js)
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
 }
