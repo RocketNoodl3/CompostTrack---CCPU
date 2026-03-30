@@ -11,7 +11,7 @@ const APP_CONFIG = Object.freeze({
 
   // ── URL de votre Apps Script déployé ────────────────────────────────────────
   // Exemple : "https://script.google.com/macros/s/AKfy.../exec"
-  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbxK8NM7TsPci0LatdY0msFJdxpwDlI_7dzPrRaGF3hkkAH6h9xzkZfOMpDhLbq_RFcP/exec",
+  APPS_SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzhhPcrkVc7aBkh6mlEkQxlVcf0ie5FVRZhiieyF1JSDOGH6eO7Rnman1gZoZlry7r4/exec",
 
   // ── Google Client ID ─────────────────────────────────────────────────────────
   // Créé dans Google Cloud Console > APIs & Services > Identifiants
