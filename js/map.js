@@ -229,7 +229,7 @@ const MapModule = (() => {
     btn.addEventListener("click", () => {
       _filtreAlerte = !_filtreAlerte;
       btn.classList.toggle("map-btn--active", _filtreAlerte);
-      btn.textContent = _filtreAlerte ? "🔴 Toutes les alertes" : "🔴 Alertes seulement";
+      btn.textContent = _filtreAlerte ? "Tous les bacs" : "Bacs en alerte";
       _applyFiltre();
     });
   }
