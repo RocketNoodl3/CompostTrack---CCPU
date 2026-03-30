@@ -317,9 +317,23 @@
       } catch (err) {
         console.error("Erreur de chargement :", err);
         const tbody = document.getElementById("table-body");
-        if (tbody) tbody.innerHTML = `<tr><td colspan="13" class="table__empty">
-          ⚠️ Impossible de charger les données.
-        </td></tr>`;
+        if (!tbody) return;
+        let message = "⚠️ Impossible de charger les données.";
+      
+        // Détection type erreur
+        if (err?.status === 401 || err?.status === 403) {
+          message = "🔒 Accès refusé. Veuillez vous connecter pour accéder aux données.";
+        } else if (err?.message?.includes("fetch") || err?.message?.includes("network")) {
+          message = "🌐 Problème de connexion. Vérifiez votre réseau et réessayez.";
+        }
+      
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="13" class="table__empty">
+              ${message}
+            </td>
+          </tr>
+        `;
       }
     });
   });
