@@ -435,3 +435,49 @@ button { cursor: pointer; font-family: inherit; }
 }
 
 .detail__row:last-child .detail__td { border-bottom: none; }
+
+/* ── Alertes carte ───────────────────────────────────────────────────────────── */
+
+/* Badge header */
+.alerte-badge {
+  display: flex; align-items: center; gap: .3rem;
+  background: #c0392b; color: #fff;
+  border-radius: 999px; padding: .25rem .75rem;
+  font-size: .82rem; animation: badgePulse 2s ease-in-out infinite;
+  white-space: nowrap;
+}
+.alerte-badge strong { font-size: 1rem; }
+
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192,57,43,.5); }
+  50%       { box-shadow: 0 0 0 6px rgba(192,57,43,0); }
+}
+
+/* Bouton filtre actif */
+.map-btn--active {
+  background: #c0392b !important;
+  color: #fff !important;
+  border-color: #c0392b !important;
+}
+
+/* Légende — point animé pour les alertes */
+.map-legend__dot--pulse {
+  animation: legendPulse 1.6s ease-in-out infinite;
+}
+@keyframes legendPulse {
+  0%, 100% { transform: scale(1);   opacity: 1; }
+  50%       { transform: scale(1.4); opacity: .8; }
+}
+
+/* Popup — bannière d'alerte */
+.popup__alerte {
+  border-radius: var(--r); padding: .3rem .6rem;
+  font-size: .8rem; font-weight: 700; margin-bottom: .5rem;
+  text-align: center;
+}
+.popup__alerte--apport  { background: #fde8d8; color: #c05a10; }
+.popup__alerte--broyat  { background: #d8eaf8; color: #1a5a8a; }
+.popup__alerte--urgence { background: #fde; color: #c0392b; }
+
+/* Valeur en alerte dans le popup */
+.popup__val--alerte { color: #c0392b; font-weight: 800; }
