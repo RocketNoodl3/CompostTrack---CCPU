@@ -24,8 +24,8 @@ const APP_CONFIG = Object.freeze({
 
   // ── Seuils d'alerte par défaut ───────────────────────────────────────────────
   // Ces valeurs sont écrasées par celles de l'onglet config_seuils du Sheet.
-  SEUIL_APPORT_ALERTE: 30,    // Hauteur bac apport  ≤ X % → marqueur orange
-  SEUIL_BROYAT_ALERTE: 70,    // Hauteur bac broyat  ≥ X % → marqueur bleu
+  SEUIL_APPORT_ALERTE: 80,    // Hauteur bac apport  >= X % → marqueur orange
+  SEUIL_BROYAT_ALERTE: 20,    // Hauteur bac broyat  <= X % → marqueur bleu
 
   // ── Couleurs des marqueurs ───────────────────────────────────────────────────
   MARQUEUR_NORMAL:        "#2d6a4f",
