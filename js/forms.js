@@ -55,6 +55,8 @@ const Forms = (() => {
         form.reset();
         _editId = null;
         await Promise.all([MapModule.refresh(), TableModule.refresh()]);
+        // Recharge la liste des bacs dans le formulaire relevé
+        await _refreshSelectBacs();
       } catch (err) {
         showToast("Erreur : " + err.message, "error");
       } finally {
@@ -183,6 +185,22 @@ const Forms = (() => {
   // ===========================================================================
   // Helpers
   // ===========================================================================
+
+  /** Recharge le select des bacs dans le formulaire relevé après ajout/modif */
+  async function _refreshSelectBacs() {
+    _bacs = await apiFetchBacs();
+    _fillSelect("releve-bac", _bacs.map(b => ({ value: b.id, label: b.nom })));
+    // Recharge aussi le select de l'export si présent
+    const exportSites = document.getElementById("export-sites");
+    if (exportSites && typeof ExportModule !== "undefined") {
+      // Reconstruit les checkboxes sites de l'export
+      exportSites.innerHTML = _bacs.map(bac => `
+        <label class="checkbox-label">
+          <input type="checkbox" name="export-site" value="${bac.id}" checked>
+          <span>${bac.nom}</span>
+        </label>`).join("");
+    }
+  }
 
   function _fillSelect(id, options) {
     const el = document.getElementById(id);
