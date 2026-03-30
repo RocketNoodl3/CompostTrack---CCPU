@@ -63,6 +63,7 @@ const TableModule = (() => {
     releves.forEach(r => {
       if (relevesByBac.has(r.bacId)) relevesByBac.get(r.bacId).push(r);
     });
+    // Tri par datetime complet — gère plusieurs relevés le même jour
     relevesByBac.forEach((arr) => arr.sort((a, b) => new Date(b.date) - new Date(a.date)));
 
     // Construit les données : bac + dernier relevé + historique complet
