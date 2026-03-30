@@ -18,6 +18,11 @@
     <a href="index.html">Carte & Bacs</a>
     <a href="stats.html" class="active">Statistiques</a>
   </nav>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span class="hamburger__bar"></span>
+    <span class="hamburger__bar"></span>
+    <span class="hamburger__bar"></span>
+  </button>
   <div id="auth-login" style="display:flex">
     <div id="google-signin-btn"></div>
   </div>
@@ -27,6 +32,12 @@
     <button class="header__logout" onclick="Auth.logout()">Déconnexion</button>
   </div>
 </header>
+
+<!-- Menu mobile -->
+<nav class="mobile-menu" id="mobile-menu">
+  <a href="index.html">🗺️ Carte & Bacs</a>
+  <a href="stats.html">📊 Statistiques</a>
+</nav>
 
 <!-- Écran de connexion -->
 <div id="auth-screen" class="auth-screen">
@@ -179,7 +190,6 @@
 
 <script src="js/config.js"></script>
 <script src="js/utils.js"></script>
-<script src="js/auth.js"></script>
 <script src="js/api.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/export.js"></script>
@@ -191,6 +201,20 @@
   window.addEventListener("load", () => {
     // Auth.init() gère : restauration sessionStorage, boutons GSI, One Tap
     Auth.init();
+
+    // Hamburger
+    document.getElementById("hamburger")?.addEventListener("click", () => {
+      const btn  = document.getElementById("hamburger");
+      const menu = document.getElementById("mobile-menu");
+      const open = menu.classList.toggle("mobile-menu--open");
+      btn.classList.toggle("hamburger--open", open);
+    });
+    document.addEventListener("click", e => {
+      if (!e.target.closest("#hamburger") && !e.target.closest("#mobile-menu")) {
+        document.getElementById("hamburger")?.classList.remove("hamburger--open");
+        document.getElementById("mobile-menu")?.classList.remove("mobile-menu--open");
+      }
+    });
 
     Auth.onLogin(async () => {
       try {
