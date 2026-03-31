@@ -50,7 +50,12 @@ button { cursor: pointer; font-family: inherit; }
   font-family: var(--font-titre); font-size: 1.1rem; color: var(--vert-pale);
   white-space: nowrap; flex-shrink: 0;
 }
-.header__nav { display: flex; gap: .2rem; flex-wrap: wrap; }
+.header__nav { display: flex; gap: .2rem; flex-wrap: nowrap; overflow: hidden; }
+@media (max-width: 480px) {
+  .header__nav a { padding: .3rem .45rem; font-size: .78rem; }
+  .header__logo  { font-size: .95rem; }
+  .header__logout { font-size: .72rem; padding: .18rem .45rem; }
+}
 .header__nav a {
   color: var(--vert-pale); padding: .35rem .65rem;
   border-radius: var(--r); font-size: .85rem;
@@ -97,8 +102,9 @@ button { cursor: pointer; font-family: inherit; }
 
 /* ── Carte ──────────────────────────────────────────────────────────────────── */
 #map {
-  /* Plein écran — occupe tout l'espace sous le header */
+  /* Plein écran — dvh exclut la barre du navigateur mobile */
   height: calc(100vh - var(--header-h));
+  height: calc(100dvh - var(--header-h));  /* Support moderne mobile */
   width: 100%;
   background: var(--vert-fond);
 }
@@ -122,6 +128,11 @@ button { cursor: pointer; font-family: inherit; }
 
 /* Légende */
 .map-legend { background: var(--blanc); border-radius: var(--r); padding: .5rem .7rem; box-shadow: var(--sh); font-size: .76rem; line-height: 1.9; }
+/* Remonte la légende et les contrôles Leaflet sur mobile pour éviter la barre navigateur */
+@media (max-width: 768px) {
+  .leaflet-bottom { bottom: env(safe-area-inset-bottom, 0px); padding-bottom: .5rem; }
+  .leaflet-control-zoom { margin-top: calc(var(--header-h) + .5rem) !important; }
+}
 .map-legend__item { display: flex; align-items: center; gap: .35rem; }
 .map-legend__dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .map-legend__dot--pulse { animation: legendPulse 1.6s ease-in-out infinite; }
