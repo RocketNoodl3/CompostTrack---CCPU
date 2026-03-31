@@ -255,23 +255,40 @@ button { cursor: pointer; font-family: inherit; }
 @media (min-width: 600px) { .modal { align-items: center; } }
 .modal__box {
   background: var(--blanc); border-radius: var(--rl) var(--rl) 0 0;
-  width: 100%; max-width: 560px; max-height: 92vh;
-  overflow-y: auto; padding: 1.1rem 1rem 1.5rem;
+  width: 100%; max-width: 560px;
+  /* Mobile : 75vh max pour rester accessible, scroll interne */
+  max-height: 75vh;
+  overflow-y: auto;
+  padding: .85rem .9rem 1.25rem;
   animation: slideUp 240ms ease;
 }
-@media (min-width: 600px) { .modal__box { border-radius: var(--rl); } }
+@media (min-width: 600px) {
+  .modal__box {
+    border-radius: var(--rl);
+    max-height: 90vh;
+    padding: 1.1rem 1rem 1.5rem;
+  }
+}
 @keyframes slideUp { from { transform: translateY(36px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.modal__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
-.modal__title  { font-family: var(--font-titre); font-size: 1.15rem; color: var(--vert-fonce); }
+.modal__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .75rem; }
+.modal__title  { font-family: var(--font-titre); font-size: 1.1rem; color: var(--vert-fonce); }
 .modal__close  { background: none; border: none; font-size: 1.4rem; color: var(--texte-doux); padding: .2rem; cursor: pointer; }
 
 /* ── Formulaires ────────────────────────────────────────────────────────────── */
-.form__group   { margin-bottom: .9rem; }
-.form__label   { display: block; font-size: .82rem; font-weight: 600; color: var(--texte-doux); margin-bottom: .28rem; }
+.form__group   { margin-bottom: .75rem; }
+.form__label   { display: block; font-size: .8rem; font-weight: 600; color: var(--texte-doux); margin-bottom: .22rem; }
 .form__input, .form__select {
   width: 100%; border: 1px solid var(--bord); border-radius: var(--r);
-  padding: .52rem .7rem; font-family: inherit; font-size: .93rem;
+  padding: .48rem .65rem; font-family: inherit; font-size: .9rem;
   background: var(--blanc); transition: border-color var(--tr);
+}
+@media (max-width: 600px) {
+  .form__group  { margin-bottom: .55rem; }
+  .form__label  { font-size: .75rem; margin-bottom: .18rem; }
+  .form__input, .form__select { padding: .42rem .6rem; font-size: .88rem; }
+  .form__actions { margin-top: .75rem; }
+  .star-rating label { font-size: 1.5rem; }
+  .range-value { font-size: .88rem; }
 }
 .form__input:focus, .form__select:focus { outline: none; border-color: var(--vert-clair); box-shadow: 0 0 0 3px rgba(82,183,136,.2); }
 .form__row     { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; }
