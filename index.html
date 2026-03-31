@@ -94,18 +94,24 @@
 <div id="modal-releve" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-releve-title">
   <div class="modal__box">
     <div class="modal__header">
-      <h2 class="modal__title" id="modal-releve-title">Nouveau relevé</h2>
+      <h2 class="modal__title" id="modal-releve-title">📋 Nouveau relevé</h2>
       <button class="modal__close" data-close-modal="modal-releve">×</button>
     </div>
     <form id="form-releve" novalidate>
-      <div class="form__group">
-        <label class="form__label" for="releve-date">Date et heure *</label>
-        <input type="datetime-local" id="releve-date" name="releve-date" class="form__input" required>
+ 
+      <!-- Ligne 1 : Date + Site -->
+      <div class="form__row">
+        <div class="form__group">
+          <label class="form__label" for="releve-date">Date et heure *</label>
+          <input type="datetime-local" id="releve-date" name="releve-date" class="form__input" required>
+        </div>
+        <div class="form__group">
+          <label class="form__label" for="releve-bac">Site *</label>
+          <select id="releve-bac" name="releve-bac" class="form__select" required></select>
+        </div>
       </div>
-      <div class="form__group">
-        <label class="form__label" for="releve-bac">Site *</label>
-        <select id="releve-bac" name="releve-bac" class="form__select" required></select>
-      </div>
+ 
+      <!-- Ligne 2 : Agent + Type -->
       <div class="form__row">
         <div class="form__group">
           <label class="form__label" for="releve-agent">Agent *</label>
@@ -116,27 +122,13 @@
           <select id="releve-type" name="releve-type" class="form__select" required></select>
         </div>
       </div>
-      <div class="form__group">
-        <label class="form__label" for="releve-temp">Température (°C)</label>
-        <input type="number" id="releve-temp" name="releve-temp" class="form__input" placeholder="Ex : 42" min="-10" max="85" step="0.1">
-      </div>
-      <div class="form__group">
-        <label class="form__label">Hauteur bac d'apport</label>
-        <div class="range-wrapper">
-          <input type="range" id="releve-apport" name="releve-apport" class="form__range" min="0" max="100" step="10" value="50"
-                 oninput="document.getElementById('val-apport').textContent=this.value+'%'">
-          <span class="range-value" id="val-apport">50%</span>
-        </div>
-      </div>
-      <div class="form__group">
-        <label class="form__label">Hauteur bac broyat</label>
-        <div class="range-wrapper">
-          <input type="range" id="releve-broyat" name="releve-broyat" class="form__range" min="0" max="100" step="10" value="50"
-                 oninput="document.getElementById('val-broyat').textContent=this.value+'%'">
-          <span class="range-value" id="val-broyat">50%</span>
-        </div>
-      </div>
+ 
+      <!-- Ligne 3 : Température + Hygro -->
       <div class="form__row">
+        <div class="form__group">
+          <label class="form__label" for="releve-temp">Temp. (°C)</label>
+          <input type="number" id="releve-temp" name="releve-temp" class="form__input" placeholder="42" min="-10" max="85" step="0.1">
+        </div>
         <div class="form__group">
           <label class="form__label" for="releve-hygro">Hygrométrie</label>
           <select id="releve-hygro" name="releve-hygro" class="form__select">
@@ -145,6 +137,32 @@
             <option>Sec</option><option>Trop sec</option>
           </select>
         </div>
+      </div>
+ 
+      <!-- Ligne 4 : Apport + Broyat côte à côte -->
+      <div class="form__row">
+        <div class="form__group">
+          <label class="form__label">Apport</label>
+          <div class="range-wrapper">
+            <input type="range" id="releve-apport" name="releve-apport" class="form__range"
+                   min="0" max="100" step="10" value="50"
+                   oninput="document.getElementById('val-apport').textContent=this.value+'%'">
+            <span class="range-value" id="val-apport">50%</span>
+          </div>
+        </div>
+        <div class="form__group">
+          <label class="form__label">Broyat</label>
+          <div class="range-wrapper">
+            <input type="range" id="releve-broyat" name="releve-broyat" class="form__range"
+                   min="0" max="100" step="10" value="50"
+                   oninput="document.getElementById('val-broyat').textContent=this.value+'%'">
+            <span class="range-value" id="val-broyat">50%</span>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Ligne 5 : Qualité apports + Note étoiles -->
+      <div class="form__row">
         <div class="form__group">
           <label class="form__label" for="releve-qualite-apports">Qualité apports</label>
           <select id="releve-qualite-apports" name="releve-qualite-apports" class="form__select">
@@ -153,31 +171,40 @@
             <option>Moyen</option><option>Faible</option>
           </select>
         </div>
+        <div class="form__group">
+          <label class="form__label">Note qualité</label>
+          <div class="star-rating" role="group">
+            <input type="radio" id="star5" name="releve-etoiles" value="5"><label for="star5">★</label>
+            <input type="radio" id="star4" name="releve-etoiles" value="4"><label for="star4">★</label>
+            <input type="radio" id="star3" name="releve-etoiles" value="3"><label for="star3">★</label>
+            <input type="radio" id="star2" name="releve-etoiles" value="2"><label for="star2">★</label>
+            <input type="radio" id="star1" name="releve-etoiles" value="1"><label for="star1">★</label>
+          </div>
+        </div>
       </div>
+ 
+      <!-- Problèmes -->
       <div class="form__group">
         <label class="form__label">Problèmes constatés</label>
         <div id="releve-problemes" class="checkbox-group"></div>
       </div>
+ 
+      <!-- Opérations -->
       <div class="form__group">
         <label class="form__label">Opérations réalisées</label>
         <div id="releve-operations" class="checkbox-group"></div>
-        <input type="text" id="releve-operations-autre" name="releve-operations-autre" class="form__input form__input--autre" placeholder="Préciser…">
+        <input type="text" id="releve-operations-autre" name="releve-operations-autre"
+               class="form__input form__input--autre" placeholder="Préciser…">
       </div>
+ 
+      <!-- Actions -->
       <div class="form__group">
         <label class="form__label">Actions à planifier</label>
         <div id="releve-actions-planif" class="checkbox-group"></div>
-        <input type="text" id="releve-actions-autre" name="releve-actions-autre" class="form__input form__input--autre" placeholder="Préciser…">
+        <input type="text" id="releve-actions-autre" name="releve-actions-autre"
+               class="form__input form__input--autre" placeholder="Préciser…">
       </div>
-      <div class="form__group">
-        <label class="form__label">Qualité du compostage</label>
-        <div class="star-rating" role="group">
-          <input type="radio" id="star5" name="releve-etoiles" value="5"><label for="star5">★</label>
-          <input type="radio" id="star4" name="releve-etoiles" value="4"><label for="star4">★</label>
-          <input type="radio" id="star3" name="releve-etoiles" value="3"><label for="star3">★</label>
-          <input type="radio" id="star2" name="releve-etoiles" value="2"><label for="star2">★</label>
-          <input type="radio" id="star1" name="releve-etoiles" value="1"><label for="star1">★</label>
-        </div>
-      </div>
+ 
       <div class="form__actions">
         <button type="button" class="btn btn--secondary" data-close-modal="modal-releve">Annuler</button>
         <button type="submit" class="btn btn--primary">Enregistrer</button>
