@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CompostTrack — Bacs</title>
+  <meta name="theme-color" content="#1b4332">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header__logo">🌿 CompostTrack</div>
+  <nav class="header__nav" id="main-nav" style="display:none">
+    <a href="index.html">🗺️ Carte</a>
+    <a href="bacs.html" class="active">📦 Bacs</a>
+    <a href="stats.html">📊 Stats</a>
+  </nav>
+  <div id="auth-login" style="display:flex">
+    <div id="google-signin-btn"></div>
+  </div>
+  <div id="auth-user" style="display:none" class="header__user">
+    <img id="user-avatar" class="header__avatar" src="" alt="Avatar" style="display:none">
+    <span id="user-name" class="header__username"></span>
+    <button class="header__logout" onclick="Auth.logout()">Déco</button>
+  </div>
+</header>
+
+<!-- Écran de connexion -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-screen__icon">📦</div>
+  <h1 class="auth-screen__title">CompostTrack</h1>
+  <p class="auth-screen__subtitle">Connectez-vous avec votre compte Google autorisé.</p>
+  <div id="google-signin-btn-center" style="margin-top:1.5rem"></div>
+</div>
+
+<!-- Contenu principal -->
+<div id="app-content" style="display:none">
+  <section class="main-section">
+    <div class="section-header">
+      <h2 class="section-title">📦 Tous les bacs</h2>
+      <div class="section-actions">
+        <input type="search" class="table-filter__input" placeholder="🔍 Filtrer…"
+               oninput="TableModule.setFiltre(this.value)">
+        <button class="btn btn--primary" onclick="Forms.openAddBacForm()">+ Bac</button>
+        <button class="btn btn--secondary" onclick="Forms.openReleveForm(null)">📋 Relevé</button>
+        <button class="btn btn--export" onclick="ExportModule.openExportModal()">📥 Excel</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table class="table" role="grid">
+        <thead id="table-head"></thead>
+        <tbody id="table-body">
+          <tr><td colspan="13" class="table__loading"><span class="spinner"></span> Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div><!-- /#app-content -->
+
+
+<!-- MODALE Bac -->
+<div id="modal-bac" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-bac-title">
+  <div class="modal__box">
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-bac-title">Nouveau bac</h2>
+      <button class="modal__close" data-close-modal="modal-bac">×</button>
+    </div>
+    <form id="form-bac" novalidate>
+      <div class="form__group">
+        <label class="form__label" for="bac-nom">Nom du site *</label>
+        <input type="text" id="bac-nom" name="nom" class="form__input" placeholder="Ex : Jardin des Lilas" required>
+      </div>
+      <div class="form__group">
+        <label class="form__label">Coordonnées GPS *</label>
+        <div class="form__row">
+          <input type="number" name="lat" class="form__input" placeholder="Latitude"  step="0.000001" required>
+          <input type="number" name="lng" class="form__input" placeholder="Longitude" step="0.000001" required>
+        </div>
+        <button type="button" id="btn-gps" class="btn btn--secondary" style="margin-top:.5rem;width:100%">
+          📍 Utiliser ma position
+        </button>
+      </div>
+      <div class="form__actions">
+        <button type="button" class="btn btn--secondary" data-close-modal="modal-bac">Annuler</button>
+        <button type="submit" class="btn btn--primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- MODALE Relevé -->
+<div id="modal-releve" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-releve-title">
+  <div class="modal__box">
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-releve-title">Nouveau relevé</h2>
+      <button class="modal__close" data-close-modal="modal-releve">×</button>
+    </div>
+    <form id="form-releve" novalidate>
+      <div class="form__group">
+        <label class="form__label" for="releve-date">Date et heure *</label>
+        <input type="datetime-local" id="releve-date" name="releve-date" class="form__input" required>
+      </div>
+      <div class="form__group">
+        <label class="form__label" for="releve-bac">Site *</label>
+        <select id="releve-bac" name="releve-bac" class="form__select" required></select>
+      </div>
+      <div class="form__row">
+        <div class="form__group">
+          <label class="form__label" for="releve-agent">Agent *</label>
+          <select id="releve-agent" name="releve-agent" class="form__select" required></select>
+        </div>
+        <div class="form__group">
+          <label class="form__label" for="releve-type">Type *</label>
+          <select id="releve-type" name="releve-type" class="form__select" required></select>
+        </div>
+      </div>
+      <div class="form__group">
+        <label class="form__label" for="releve-temp">Température (°C)</label>
+        <input type="number" id="releve-temp" name="releve-temp" class="form__input" placeholder="Ex : 42" min="-10" max="85" step="0.1">
+      </div>
+      <div class="form__group">
+        <label class="form__label">Hauteur bac d'apport</label>
+        <div class="range-wrapper">
+          <input type="range" id="releve-apport" name="releve-apport" class="form__range" min="0" max="100" step="10" value="50"
+                 oninput="document.getElementById('val-apport').textContent=this.value+'%'">
+          <span class="range-value" id="val-apport">50%</span>
+        </div>
+      </div>
+      <div class="form__group">
+        <label class="form__label">Hauteur bac broyat</label>
+        <div class="range-wrapper">
+          <input type="range" id="releve-broyat" name="releve-broyat" class="form__range" min="0" max="100" step="10" value="50"
+                 oninput="document.getElementById('val-broyat').textContent=this.value+'%'">
+          <span class="range-value" id="val-broyat">50%</span>
+        </div>
+      </div>
+      <div class="form__row">
+        <div class="form__group">
+          <label class="form__label" for="releve-hygro">Hygrométrie</label>
+          <select id="releve-hygro" name="releve-hygro" class="form__select">
+            <option value="">—</option>
+            <option>Humide</option><option>Trop humide</option>
+            <option>Sec</option><option>Trop sec</option>
+          </select>
+        </div>
+        <div class="form__group">
+          <label class="form__label" for="releve-qualite-apports">Qualité apports</label>
+          <select id="releve-qualite-apports" name="releve-qualite-apports" class="form__select">
+            <option value="">—</option>
+            <option>Très bon</option><option>Bon</option>
+            <option>Moyen</option><option>Faible</option>
+          </select>
+        </div>
+      </div>
+      <div class="form__group">
+        <label class="form__label">Problèmes constatés</label>
+        <div id="releve-problemes" class="checkbox-group"></div>
+      </div>
+      <div class="form__group">
+        <label class="form__label">Opérations réalisées</label>
+        <div id="releve-operations" class="checkbox-group"></div>
+        <input type="text" id="releve-operations-autre" name="releve-operations-autre" class="form__input form__input--autre" placeholder="Préciser…">
+      </div>
+      <div class="form__group">
+        <label class="form__label">Actions à planifier</label>
+        <div id="releve-actions-planif" class="checkbox-group"></div>
+        <input type="text" id="releve-actions-autre" name="releve-actions-autre" class="form__input form__input--autre" placeholder="Préciser…">
+      </div>
+      <div class="form__group">
+        <label class="form__label">Qualité du compostage</label>
+        <div class="star-rating" role="group">
+          <input type="radio" id="star5" name="releve-etoiles" value="5"><label for="star5">★</label>
+          <input type="radio" id="star4" name="releve-etoiles" value="4"><label for="star4">★</label>
+          <input type="radio" id="star3" name="releve-etoiles" value="3"><label for="star3">★</label>
+          <input type="radio" id="star2" name="releve-etoiles" value="2"><label for="star2">★</label>
+          <input type="radio" id="star1" name="releve-etoiles" value="1"><label for="star1">★</label>
+        </div>
+      </div>
+      <div class="form__actions">
+        <button type="button" class="btn btn--secondary" data-close-modal="modal-releve">Annuler</button>
+        <button type="submit" class="btn btn--primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- MODALE Export -->
+<div id="modal-export" class="modal" role="dialog" aria-modal="true">
+  <div class="modal__box">
+    <div class="modal__header">
+      <h2 class="modal__title">📥 Exporter les relevés</h2>
+      <button class="modal__close" data-close-modal="modal-export">×</button>
+    </div>
+    <p class="export-info">Export <strong>.xlsx</strong> avec toutes les données.</p>
+    <p class="export-section-title">📅 Période</p>
+    <div class="form__row" style="margin-bottom:.95rem">
+      <div class="form__group">
+        <label class="form__label">Du</label>
+        <input type="date" id="export-date-debut" class="form__input">
+      </div>
+      <div class="form__group">
+        <label class="form__label">Au</label>
+        <input type="date" id="export-date-fin" class="form__input">
+      </div>
+    </div>
+    <p class="export-section-title">🏡 Sites</p>
+    <div id="export-sites" class="checkbox-group" style="margin-bottom:1rem"></div>
+    <div class="form__actions">
+      <button class="btn btn--secondary" data-close-modal="modal-export">Annuler</button>
+      <button id="btn-export-go" class="btn btn--export" onclick="ExportModule.runExport()">📥 Télécharger</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- SCRIPTS -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/table.js"></script>
+<script src="js/forms.js"></script>
+<script src="js/export.js"></script>
+
+<script>
+  // table.js référence MapModule.focusBac — on définit un stub pour éviter l'erreur
+  const MapModule = { focusBac: (id) => {
+    // Redirige vers la carte avec le bac sélectionné en paramètre URL
+    window.location.href = `index.html?bac=${id}`;
+  }};
+
+  initModalClose();
+
+  window.addEventListener("load", () => {
+    Auth.init();
+    Auth.onLogin(async () => {
+      try {
+        await initSeuils();
+        await Promise.all([TableModule.load(), Forms.init()]);
+      } catch (err) {
+        console.error("Erreur :", err);
+        showToast("Erreur de chargement : " + err.message, "error");
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
