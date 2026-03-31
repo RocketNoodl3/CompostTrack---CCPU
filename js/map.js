@@ -248,7 +248,7 @@ const MapModule = (() => {
   // ===========================================================================
 
   function _addLegend() {
-    const legend = L.control({ position: "bottomleft" });
+    const legend = L.control({ position: "topleft" });
     legend.onAdd = () => {
       const div = L.DomUtil.create("div", "map-legend");
       div.innerHTML = Object.entries(ALERTE_CONFIG).map(([, cfg]) => `
