@@ -11,18 +11,13 @@
 </head>
 <body>
 
-<!-- ═══════════════ HEADER ═══════════════════════════════════════════════════ -->
+<!-- HEADER -->
 <header class="header">
   <div class="header__logo">🌿 CompostTrack</div>
   <nav class="header__nav" id="main-nav" style="display:none">
     <a href="index.html">Carte & Bacs</a>
     <a href="stats.html" class="active">Statistiques</a>
   </nav>
-  <button class="hamburger" id="hamburger" aria-label="Menu">
-    <span class="hamburger__bar"></span>
-    <span class="hamburger__bar"></span>
-    <span class="hamburger__bar"></span>
-  </button>
   <div id="auth-login" style="display:flex">
     <div id="google-signin-btn"></div>
   </div>
@@ -32,12 +27,6 @@
     <button class="header__logout" onclick="Auth.logout()">Déconnexion</button>
   </div>
 </header>
-
-<!-- Menu mobile -->
-<nav class="mobile-menu" id="mobile-menu">
-  <a href="index.html">🗺️ Carte & Bacs</a>
-  <a href="stats.html">📊 Statistiques</a>
-</nav>
 
 <!-- Écran de connexion -->
 <div id="auth-screen" class="auth-screen">
@@ -49,184 +38,114 @@
 
 <!-- Contenu principal -->
 <div id="app-content" style="display:none">
-
-<!-- ═══════════════ CONTENU ══════════════════════════════════════════════════ -->
 <div class="stats-page">
 
-  <!-- En-tête avec titre, filtre période et export -->
   <div class="stats-header">
-    <h1 class="stats-page-title">📊 Statistiques des relevés</h1>
+    <h1 class="stats-page-title">📊 Statistiques</h1>
     <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
-      <select id="stats-periode" class="stats-periode-select" aria-label="Période d'analyse">
+      <select id="stats-periode" class="stats-periode-select">
         <option value="semaine">Par semaine</option>
         <option value="mois" selected>Par mois</option>
         <option value="annee">Par année</option>
       </select>
-      <!-- Export Excel depuis la page stats -->
-      <button class="btn btn--export" onclick="ExportModule.openExportModal()">
-        📥 Exporter Excel
-      </button>
+      <button class="btn btn--export" onclick="ExportModule.openExportModal()">📥 Excel</button>
     </div>
   </div>
 
-  <!-- ── KPI globaux ─────────────────────────────────────────────────────── -->
+  <!-- KPI -->
   <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="kpi-card__value" id="kpi-total-bacs">—</div>
-      <div class="kpi-card__label">Bacs suivis</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-card__value" id="kpi-total-releves">—</div>
-      <div class="kpi-card__label">Relevés totaux</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-card__value" id="kpi-moy-apport">—</div>
-      <div class="kpi-card__label">Apport moyen</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-card__value" id="kpi-moy-broyat">—</div>
-      <div class="kpi-card__label">Broyat moyen</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-card__value" id="kpi-moy-temp">—</div>
-      <div class="kpi-card__label">Temp. moyenne</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-card__value" id="kpi-moy-qualite">—</div>
-      <div class="kpi-card__label">Note qualité</div>
-    </div>
+    <div class="kpi-card"><div class="kpi-card__value" id="kpi-total-bacs">—</div><div class="kpi-card__label">Bacs</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" id="kpi-total-releves">—</div><div class="kpi-card__label">Relevés</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" id="kpi-moy-apport">—</div><div class="kpi-card__label">Apport moy.</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" id="kpi-moy-broyat">—</div><div class="kpi-card__label">Broyat moy.</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" id="kpi-moy-temp">—</div><div class="kpi-card__label">Temp. moy.</div></div>
+    <div class="kpi-card"><div class="kpi-card__value" id="kpi-moy-qualite">—</div><div class="kpi-card__label">Note moy.</div></div>
   </div>
 
-  <!-- ── Filtre sites ────────────────────────────────────────────────────── -->
+  <!-- Filtre sites -->
   <div class="stats-controls">
-    <div class="stats-controls__row">
-      <span class="stats-controls__title">Sites affichés dans les graphiques :</span>
-    </div>
-    <div id="stats-sites" class="stats-sites-grid">
-      <em style="color:var(--texte-doux);font-size:.85rem">Chargement…</em>
-    </div>
+    <div class="stats-controls__title">Sites affichés</div>
+    <div id="stats-sites" class="stats-sites-grid"></div>
   </div>
 
-  <!-- ── Graphiques ─────────────────────────────────────────────────────── -->
+  <!-- Graphiques -->
   <div class="charts-grid">
-
-    <!-- 1. Taux de remplissage — pleine largeur -->
-    <div class="chart-card chart-card--full">
-      <canvas id="chart-remplissage"></canvas>
-    </div>
-
-    <!-- 2. Température -->
-    <div class="chart-card">
-      <canvas id="chart-temperature"></canvas>
-    </div>
-
-    <!-- 3. Note qualité par site -->
-    <div class="chart-card">
-      <canvas id="chart-qualite"></canvas>
-    </div>
-
-    <!-- 4. Fréquence des problèmes -->
-    <div class="chart-card">
-      <canvas id="chart-problemes"></canvas>
-    </div>
-
-    <!-- 5. Activité (nombre de relevés) -->
-    <div class="chart-card">
-      <canvas id="chart-activite"></canvas>
-    </div>
-
+    <div class="chart-card chart-card--full"><canvas id="chart-remplissage"></canvas></div>
+    <div class="chart-card"><canvas id="chart-temperature"></canvas></div>
+    <div class="chart-card"><canvas id="chart-qualite"></canvas></div>
+    <div class="chart-card"><canvas id="chart-problemes"></canvas></div>
+    <div class="chart-card"><canvas id="chart-activite"></canvas></div>
   </div>
-</div><!-- /.stats-page -->
+
+</div>
+</div><!-- /#app-content -->
 
 
-<!-- ═══════════════ MODALE — Export Excel (identique à index.html) ══════════ -->
-<div id="modal-export" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-export-title">
+<!-- MODALE Export -->
+<div id="modal-export" class="modal" role="dialog" aria-modal="true">
   <div class="modal__box">
     <div class="modal__header">
-      <h2 class="modal__title" id="modal-export-title">📥 Exporter les relevés</h2>
-      <button class="modal__close" data-close-modal="modal-export" aria-label="Fermer">×</button>
+      <h2 class="modal__title">📥 Exporter les relevés</h2>
+      <button class="modal__close" data-close-modal="modal-export">×</button>
     </div>
-
-    <p class="export-info">
-      L'export génère un fichier <strong>.xlsx</strong> téléchargeable directement.
-      Il contient toutes les informations du bac, du relevé, les problèmes,
-      opérations et la note qualité.
-    </p>
-
+    <p class="export-info">Export <strong>.xlsx</strong> avec toutes les données.</p>
     <p class="export-section-title">📅 Période</p>
     <div class="form__row" style="margin-bottom:.95rem">
       <div class="form__group">
-        <label class="form__label" for="export-date-debut">Du</label>
+        <label class="form__label">Du</label>
         <input type="date" id="export-date-debut" class="form__input">
       </div>
       <div class="form__group">
-        <label class="form__label" for="export-date-fin">Au</label>
+        <label class="form__label">Au</label>
         <input type="date" id="export-date-fin" class="form__input">
       </div>
     </div>
-
-    <p class="export-section-title">🏡 Sites à inclure</p>
-    <div id="export-sites" class="checkbox-group" style="margin-bottom:1rem">
-      <em style="color:var(--texte-doux);font-size:.85rem">Chargement…</em>
-    </div>
-
+    <p class="export-section-title">🏡 Sites</p>
+    <div id="export-sites" class="checkbox-group" style="margin-bottom:1rem"></div>
     <div class="form__actions">
       <button class="btn btn--secondary" data-close-modal="modal-export">Annuler</button>
-      <button id="btn-export-go" class="btn btn--export" onclick="ExportModule.runExport()">
-        📥 Télécharger Excel
-      </button>
+      <button id="btn-export-go" class="btn btn--export" onclick="ExportModule.runExport()">📥 Télécharger</button>
     </div>
   </div>
 </div>
 
 
-</div><!-- /#app-content -->
-
-<!-- ═══════════════ SCRIPTS ═══════════════════════════════════════════════════ -->
-<!-- Google Identity Services -->
+<!-- SCRIPTS -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
 <script src="js/config.js"></script>
 <script src="js/utils.js"></script>
+<script src="js/auth.js"></script>
 <script src="js/api.js"></script>
 <script src="js/stats.js"></script>
 <script src="js/export.js"></script>
 
 <script>
-  /** Point d'entrée — page statistiques */
   initModalClose();
 
   window.addEventListener("load", () => {
-    // Auth.init() gère : restauration sessionStorage, boutons GSI, One Tap
     Auth.init();
-
-    // Hamburger
-    document.getElementById("hamburger")?.addEventListener("click", () => {
-      const btn  = document.getElementById("hamburger");
-      const menu = document.getElementById("mobile-menu");
-      const open = menu.classList.toggle("mobile-menu--open");
-      btn.classList.toggle("hamburger--open", open);
-    });
-    document.addEventListener("click", e => {
-      if (!e.target.closest("#hamburger") && !e.target.closest("#mobile-menu")) {
-        document.getElementById("hamburger")?.classList.remove("hamburger--open");
-        document.getElementById("mobile-menu")?.classList.remove("mobile-menu--open");
-      }
-    });
-
     Auth.onLogin(async () => {
       try {
         await StatsModule.init();
-
+        // KPI
+        const [bacs, releves] = await Promise.all([apiFetchBacs(), apiFetchReleves()]);
+        const moy = f => {
+          const v = releves.map(r => parseFloat(r[f])).filter(v => !isNaN(v));
+          return v.length ? (v.reduce((a,b)=>a+b,0)/v.length).toFixed(1) : "—";
+        };
+        const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+        set("kpi-total-bacs",    bacs.length);
+        set("kpi-total-releves", releves.length);
+        set("kpi-moy-apport",    moy("hauteurApport") !== "—" ? moy("hauteurApport") + "%" : "—");
+        set("kpi-moy-broyat",    moy("hauteurBroyat") !== "—" ? moy("hauteurBroyat") + "%" : "—");
+        set("kpi-moy-temp",      moy("temperature")   !== "—" ? moy("temperature")   + "°C" : "—");
+        set("kpi-moy-qualite",   moy("qualiteCompostage") !== "—" ? moy("qualiteCompostage") + "/5" : "—");
       } catch (err) {
-        console.error("Erreur statistiques :", err);
-        document.querySelector(".stats-page")?.insertAdjacentHTML("afterbegin",
-          `<div style="background:#fde;padding:1rem;border-radius:8px;margin-bottom:1rem">
-            ⚠️ Impossible de charger les données. Vérifiez l'URL Apps Script dans js/config.js.
-          </div>`
-        );
+        console.error("Erreur stats :", err);
+        showToast("Erreur de chargement : " + err.message, "error");
       }
     });
   });
