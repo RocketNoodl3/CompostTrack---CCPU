@@ -1,6 +1,6 @@
 # 🌿 CarnetVert — Guide de déploiement
 
-Gestion des bacs de compostage — 100 % gratuit, sans serveur.
+Gestion des bacs de compostage.
 
 **Fonctionnalités** :
 
@@ -153,13 +153,10 @@ const EMAILS_AUTORISES = [
 
 ---
 
-## Coût total : 0 €
-
-| Composant | Coût |
-|---|---|
-| Google Sheets | Gratuit |
-| Google Apps Script | Gratuit |
-| Google Identity Services | Gratuit |
-| GitHub Pages | Gratuit |
-| Leaflet / OpenStreetMap | Gratuit |
-| Chart.js + SheetJS | Gratuit (open source) |
+## Stack technique
+| Google Sheets
+| Google Apps Script
+| Google Identity Services
+| GitHub Pages
+| Leaflet / OpenStreetMap
+| Chart.js + SheetJS
