@@ -154,9 +154,9 @@ const EMAILS_AUTORISES = [
 ---
 
 ## Stack technique
-| Google Sheets
-| Google Apps Script
-| Google Identity Services
-| GitHub Pages
-| Leaflet / OpenStreetMap
-| Chart.js + SheetJS
+- Google Sheets
+- Google Apps Script
+- Google Identity Services
+- GitHub Pages
+- Leaflet / OpenStreetMap
+- Chart.js + SheetJS
