@@ -2,7 +2,7 @@
 
 Gestion des bacs de compostage — 100 % gratuit, sans serveur.
 
-**Fonctionnalités clés** :
+**Fonctionnalités** :
 
 - Ajout et modification de bacs
 - Affichage cartographique avec alertes d'entretien
