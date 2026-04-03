@@ -54,7 +54,11 @@ const Forms = (() => {
         closeModal("modal-bac");
         form.reset();
         _editId = null;
-        await Promise.all([MapModule.refresh(), TableModule.refresh()]);
+        // Rafraîchit uniquement les modules présents sur la page courante
+        const refreshes = [];
+        if (typeof MapModule   !== "undefined" && MapModule.refresh)   refreshes.push(MapModule.refresh());
+        if (typeof TableModule !== "undefined" && TableModule.refresh) refreshes.push(TableModule.refresh());
+        await Promise.all(refreshes);
         // Recharge la liste des bacs dans le formulaire relevé
         await _refreshSelectBacs();
       } catch (err) {
@@ -136,7 +140,11 @@ const Forms = (() => {
         form.reset();
         _resetStars();
         _resetRanges();
-        await Promise.all([MapModule.refresh(), TableModule.refresh()]);
+        // Rafraîchit uniquement les modules présents sur la page courante
+        const refreshes = [];
+        if (typeof MapModule   !== "undefined" && MapModule.refresh)   refreshes.push(MapModule.refresh());
+        if (typeof TableModule !== "undefined" && TableModule.refresh) refreshes.push(TableModule.refresh());
+        await Promise.all(refreshes);
       } catch (err) {
         showToast("Erreur : " + err.message, "error");
       } finally {
@@ -171,7 +179,13 @@ const Forms = (() => {
     // Date du jour par défaut
     const dateInput = document.getElementById("releve-date");
     if (dateInput && !dateInput.value) {
-      dateInput.value = new Date().toISOString().split("T")[0];
+      // Valeur par défaut : date ET heure courante
+      const now = new Date();
+      dateInput.value = now.getFullYear() + "-"
+        + String(now.getMonth()+1).padStart(2,"0") + "-"
+        + String(now.getDate()).padStart(2,"0") + "T"
+        + String(now.getHours()).padStart(2,"0") + ":"
+        + String(now.getMinutes()).padStart(2,"0");
     }
 
     if (bacId) {
