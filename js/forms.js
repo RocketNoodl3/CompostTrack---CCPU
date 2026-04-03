@@ -54,12 +54,9 @@ const Forms = (() => {
         closeModal("modal-bac");
         form.reset();
         _editId = null;
-        // Rafraîchit uniquement les modules présents sur la page courante
-        const refreshes = [];
-        if (typeof MapModule   !== "undefined" && MapModule.refresh)   refreshes.push(MapModule.refresh());
-        if (typeof TableModule !== "undefined" && TableModule.refresh) refreshes.push(TableModule.refresh());
-        await Promise.all(refreshes);
-        // Recharge la liste des bacs dans le formulaire relevé
+        // Rafraîchit uniquement le module de la page courante
+        if (typeof TableModule !== "undefined") await TableModule.refresh();
+        if (typeof MapModule   !== "undefined") await MapModule.refresh();
         await _refreshSelectBacs();
       } catch (err) {
         showToast("Erreur : " + err.message, "error");
