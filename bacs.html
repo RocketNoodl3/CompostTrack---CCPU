@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CarnetVert — Bacs</title>
+  <title>CompostTrack — Bacs</title>
   <meta name="theme-color" content="#1b4332">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
@@ -13,7 +13,7 @@
 
 <!-- HEADER -->
 <header class="header">
-  <div class="header__logo">🌿 CarnetVert</div>
+  <div class="header__logo">🌿 CompostTrack</div>
   <nav class="header__nav" id="main-nav" style="display:none">
     <a href="index.html">🗺️ <span class="nav-text">Carte</span></a>
     <a href="bacs.html" class="active">📦 <span class="nav-text">Bacs</span></a>
@@ -32,7 +32,7 @@
 <!-- Écran de connexion -->
 <div id="auth-screen" class="auth-screen">
   <div class="auth-screen__icon">📦</div>
-  <h1 class="auth-screen__title">CarnetVert</h1>
+  <h1 class="auth-screen__title">CompostTrack</h1>
   <p class="auth-screen__subtitle">Connectez-vous avec votre compte Google autorisé.</p>
   <div id="google-signin-btn-center" style="margin-top:1.5rem"></div>
 </div>
@@ -232,11 +232,11 @@
 <script src="js/export.js"></script>
 
 <script>
-  // table.js référence MapModule.focusBac — on définit un stub pour éviter l'erreur
-  const MapModule = { focusBac: (id) => {
-    // Redirige vers la carte avec le bac sélectionné en paramètre URL
-    window.location.href = `index.html?bac=${id}`;
-  }};
+  // Sur bacs.html, "voir sur la carte" redirige vers index.html
+  // MapModule n'est pas chargé sur cette page — on définit uniquement focusBac
+  const MapModule = {
+    focusBac: (id) => { window.location.href = `index.html?bac=${id}`; },
+  };
 
   initModalClose();
 
