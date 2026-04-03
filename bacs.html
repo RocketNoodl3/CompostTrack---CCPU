@@ -233,9 +233,9 @@
 
 <script>
   // Sur bacs.html, "voir sur la carte" redirige vers index.html
-  // MapModule n'est pas chargé sur cette page — on définit uniquement focusBac
   const MapModule = {
-    focusBac: (id) => { window.location.href = `index.html?bac=${id}`; },
+      focusBac: (id) => { window.location.href = `index.html?bac=${id}`; },
+      refresh:  ()   => Promise.resolve(),
   };
 
   initModalClose();
