@@ -20,7 +20,7 @@ const APP_CONFIG = Object.freeze({
 
   // ── Carte Leaflet ────────────────────────────────────────────────────────────
   MAP_CENTER:       [45.3633304993826, 5.589996711730135],   // Coordonnées du centre de votre territoire
-  MAP_ZOOM_DEFAULT: 16,
+  MAP_ZOOM_DEFAULT: 14,
 
   // ── Seuils d'alerte par défaut ───────────────────────────────────────────────
   // Ces valeurs sont écrasées par celles de l'onglet config_seuils du Sheet.
