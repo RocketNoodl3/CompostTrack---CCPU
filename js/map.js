@@ -23,6 +23,10 @@ const MapModule = (() => {
   // ===========================================================================
 
   function init() {
+    // Évite "Map container is already initialized" si init() est appelé deux fois
+    const container = L.DomUtil.get("map");
+    if (container && container._leaflet_id) return;
+
     _map = L.map("map", {
       center: APP_CONFIG.MAP_CENTER,
       zoom:   APP_CONFIG.MAP_ZOOM_DEFAULT,
